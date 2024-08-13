@@ -9,6 +9,8 @@ Playlist Programação para Iniciantes: https://www.youtube.com/watch?v=c9mDHLYA
 
 Live 01: https://youtube.com/live/52aFJt9C0Eg?feature=share
 
+Live 02: https://youtube.com/live/Iv4dsZWNffg?feature=share
+
 ## Como executar
 
 1. git clone
