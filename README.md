@@ -7,9 +7,15 @@ Como instalar Node + VS Code + Git: https://www.youtube.com/watch?v=iJ-BUhcZOSY
 
 Playlist Programação para Iniciantes: https://www.youtube.com/watch?v=c9mDHLYAIu8&list=PLsGmTzb4NxK3r0_sMLyHKaYX97tPN2QPm
 
+Criação de conta na Binance: https://www.youtube.com/watch?v=-6bF6a6ecIs
+
 Live 01: https://youtube.com/live/52aFJt9C0Eg?feature=share
 
 Live 02: https://youtube.com/live/Iv4dsZWNffg?feature=share
+
+Live 03: https://youtube.com/live/5751wqKf-vE?feature=share
+
+Curso Beholder (abre em 15/08): https://www.luiztools.com.br/curso-beholder
 
 ## Como executar
 

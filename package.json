@@ -4,7 +4,7 @@
   "description": "Evento online e gratuito, dias 12, 13 e 14/08, sobre programação de bot cripto.",
   "main": "index.js",
   "scripts": {
-    "start": "node index"
+    "start": "node index-1.js"
   },
   "keywords": [],
   "author": "LuizTools",
