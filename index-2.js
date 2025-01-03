@@ -1,78 +1,69 @@
-/**
- * INDEX-2.js
- * Exemplo didático com cruzamento de 2 médias
- */
+const fs = require('fs');
+const crypto = require('crypto');
+require('dotenv').config();
 
-const axios = require("axios");
-const crypto = require("crypto");
+const SECRET_KEY = process.env.SECRET_KEY;
 
-const SYMBOL = "BTCUSDT";
-const QUANTITY = "0.001";
-const API_KEY = "XXX";//aprenda a criar as chaves: https://www.youtube.com/watch?v=-6bF6a6ecIs
-const SECRET_KEY = "XXX";
-const API_URL = "https://testnet.binance.vision";//https://api.binance.com
-
-let isOpened = false;
-
-function calcSMA(data) {
-    const closes = data.map(candle => parseFloat(candle[4]));//pega somente os fechamentos
-    const sum = closes.reduce((a, b) => a + b);//somatório de fechamentos
-    return sum / data.length;//média simples
-}
-
-async function start() {
-    const { data } = await axios.get(API_URL + "/api/v3/klines?limit=21&interval=15m&symbol=" + SYMBOL);//pega 21 velas de 15min
-    const candle = data[data.length - 1];//pega última vela
-    const price = parseFloat(candle[4]);//pega preço de fechameno
-
-    console.clear();
-    console.log("Price: " + price);
-
-    const sma21 = calcSMA(data);//data tem 21 velas
-    const sma13 = calcSMA(data.slice(8));//remove 8 velas das 21
-    console.log("SMA (13): " + sma13);
-    console.log("SMA (21): " + sma21);
-    console.log("Is Opened? " + isOpened);
-
-    if (sma13 > sma21 && isOpened === false) {
-        isOpened = true;
-        newOrder(SYMBOL, QUANTITY, "BUY");
+class CryptoTradingBot {
+    constructor(config) {
+        this.config = {
+            apiKey: process.env.API_KEY,
+            secretKey: process.env.SECRET_KEY,
+            symbol: process.env.SYMBOL || 'BTCUSDT',
+            exchange: 'binance',
+            interval: '15m',
+            capital: parseFloat(process.env.CAPITAL) || 1000,
+            maxRiskPerTrade: 0.02,
+            ...config
+        };
     }
-    else if (sma13 < sma21 && isOpened === true) {
-        newOrder(SYMBOL, QUANTITY, "SELL");
-        isOpened = false;
-    }
-    else
-        console.log("aguardar");
-}
 
-async function newOrder(symbol, quantity, side) {
-    const order = { symbol, quantity, side };
-    order.type = "MARKET";
-    order.timestamp = Date.now();
+    async newOrder(symbol, quantity, side) {
+        const order = { symbol, quantity, side };
+        order.type = "MARKET";
+        order.timestamp = Date.now();
 
-    const signature = crypto
-        .createHmac("sha256", SECRET_KEY)
-        .update(new URLSearchParams(order).toString())
-        .digest("hex");
+        const signature = crypto
+            .createHmac("sha256", this.config.secretKey)
+            .update(new URLSearchParams(order).toString())
+            .digest("hex");
 
-    order.signature = signature;
+        order.signature = signature;
 
-    try {
-        const { data } = await axios.post(
-            API_URL + "/api/v3/order",
-            new URLSearchParams(order).toString(),
-            {
-                headers: { "X-MBX-APIKEY": API_KEY }
+        try {
+            // Simulação de uma resposta de operação
+            const response = {
+                symbol: order.symbol,
+                orderId: 123456,
+                status: "FILLED",
+                price: "20000",
+                executedQty: order.quantity
+            };
+
+            // Salvar a resposta em um arquivo
+            fs.writeFile("resultados_teste.json", JSON.stringify(response, null, 4), (err) => {
+                if (err) {
+                    console.error("Erro ao salvar os resultados:", err);
+                } else {
+                    console.log("Resultados salvos em resultados_teste.json");
+                }
             });
 
-        console.log(data);
-    } catch (err) {
-        //para erros e soluções com essa API, consulte https://www.luiztools.com.br/post/erros-comuns-com-as-apis-da-binance/
-        console.error(err.response.data);
+            console.log("Ordem criada com sucesso:", response);
+        } catch (error) {
+            console.error("Erro ao criar a ordem:", error);
+        }
+    }
+
+    // Método start básico
+    start() {
+        console.log('Bot iniciado com a configuração:', this.config);
+        // Exemplo de chamada para newOrder
+        this.newOrder(this.config.symbol, 0.01, 'BUY');
     }
 }
 
-setInterval(start, 3000);
+const tradingBot = new CryptoTradingBot({});
+tradingBot.start();
 
-start();
+module.exports = CryptoTradingBot;

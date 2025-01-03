@@ -1,0 +1,7 @@
+{
+    "symbol": "BTCUSDT",
+    "orderId": 123456,
+    "status": "FILLED",
+    "price": "20000",
+    "executedQty": 0.01
+}

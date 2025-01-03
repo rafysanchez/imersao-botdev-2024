@@ -9,8 +9,8 @@ const crypto = require("crypto");
 const API_URL = "https://testnet.binance.vision"; // Use a URL da testnet para testes
 const SYMBOL = "BTCUSDT";
 const QUANTITY = "0.001";
-const API_KEY = "XXX"; // Insira sua chave API aqui
-const SECRET_KEY = "XXX"; // Insira sua chave secreta aqui
+const API_KEY = process.env.API_KEY; // Insira sua chave API aqui
+const SECRET_KEY = process.env.SECRET_KEY; // Insira sua chave secreta aqui
 
 let isOpened = false;
 let entryPrice = 0; // Preço de entrada para o stop-loss e take-profit

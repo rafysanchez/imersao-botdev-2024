@@ -9,8 +9,8 @@ const crypto = require("crypto");
 const API_URL = "https://testnet.binance.vision";//https://api.binance.com
 const SYMBOL = "BTCUSDT";
 const QUANTITY = "0.001";
-const API_KEY = "XXX";//aprenda a criar as chaves: https://www.youtube.com/watch?v=-6bF6a6ecIs
-const SECRET_KEY = "XXX";
+const API_KEY = "Wei29A5gT7vCafUIqiuO2Y7jk64SSiKkUQzSeAOL562mfAZDMe4OQAOgPuxYdKX4";//aprenda a criar as chaves: https://www.youtube.com/watch?v=-6bF6a6ecIs
+const SECRET_KEY = "pHFvVpnS74fQqHjmXJrx20uLDLbUDJpdFKAYXBAIDtnSBloCRiVWDv1OIU8ecrwL";
 
 let isOpened = false;
 
