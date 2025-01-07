@@ -5,12 +5,14 @@
 
 const axios = require("axios");
 const crypto = require("crypto");
+const fs = require('fs'); // Adicionando o módulo fs
+const path = require('path'); // Adicionando o módulo path
 
 const API_URL = "https://testnet.binance.vision"; // Use a URL da testnet para testes
 const SYMBOL = "BTCUSDT";
 const QUANTITY = "0.001"; // Quantidade por operação
-const API_KEY = "XXX"; // Insira sua chave API aqui
-const SECRET_KEY = "XXX"; // Insira sua chave secreta aqui
+const API_KEY = process.env.API_KEY; // Insira sua chave API aqui
+const SECRET_KEY = process.env.SECRET_KEY; // Insira sua chave secreta aqui
 const MAX_RISK_PERCENTAGE = 0.02; // Risco máximo de 2% do capital total por operação
 const CAPITAL = 1000; // Capital total disponível para trading
 
@@ -47,6 +49,21 @@ function calcRSI(data, period) {
     return 100 - (100 / (1 + rs)); // RSI
 }
 
+// Função para registrar transações
+function logTransaction(type, price, quantity) {
+    const logFilePath = path.join(__dirname, 'trading_log.csv'); // Usando o mesmo arquivo de log
+    const timestamp = new Date().toISOString();
+    const logEntry = `${timestamp},${type},${price},${quantity}\n`;
+
+    fs.appendFile(logFilePath, logEntry, (err) => {
+        if (err) {
+            console.error("Erro ao registrar a transação:", err);
+        } else {
+            console.log("Transação registrada:", logEntry.trim());
+        }
+    });
+}
+
 async function start() {
     const { data } = await axios.get(API_URL + "/api/v3/klines?limit=50&interval=15m&symbol=" + SYMBOL);
     const candle = data[data.length - 1];
@@ -75,6 +92,7 @@ async function start() {
         isOpened = true;
         entryPrice = price; // Armazena o preço de entrada
         newOrder(SYMBOL, QUANTITY, "BUY");
+        logTransaction("BUY", entryPrice, QUANTITY); // Registrar compra
     } else if (isOpened) {
         const stopLossPrice = entryPrice - (volatility * 1.5); // Stop-loss ajustado pela volatilidade
         const takeProfitPrice = entryPrice + (volatility * 2); // Take-profit ajustado pela volatilidade
@@ -84,10 +102,12 @@ async function start() {
 
         if (price <= stopLossPrice) {
             newOrder(SYMBOL, QUANTITY, "SELL"); // Vende se atingir o stop-loss
+            logTransaction("SELL", price, QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Stop-Loss ativado. Vendido a: " + price);
         } else if (price >= takeProfitPrice) {
             newOrder(SYMBOL, QUANTITY, "SELL"); // Vende se atingir o take-profit
+            logTransaction("SELL", price, QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Take-Profit ativado. Vendido a: " + price);
         }
@@ -96,6 +116,7 @@ async function start() {
         const currentLoss = ((entryPrice - price) / entryPrice) * 100; // Cálculo da perda percentual
         if (currentLoss > (MAX_RISK_PERCENTAGE * 100)) {
             newOrder(SYMBOL, QUANTITY, "SELL"); // Vende se a perda for maior que o risco máximo
+            logTransaction("SELL", price, QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Perda significativa. Vendido a: " + price);
         }

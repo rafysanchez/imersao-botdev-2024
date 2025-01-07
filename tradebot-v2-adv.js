@@ -5,6 +5,8 @@
 
 const axios = require("axios");
 const crypto = require("crypto");
+const fs = require('fs');
+const path = require('path');
 
 const API_URL = "https://testnet.binance.vision"; // Use a URL da testnet para testes
 const SYMBOL = "BTCUSDT";
@@ -28,6 +30,21 @@ function calcVolatility(data, period) {
     return Math.sqrt(variance); // Desvio padrão
 }
 
+// Função para registrar transações
+function logTransaction(type, price, quantity) {
+    const logFilePath = path.join(__dirname, 'trading_log2.csv');
+    const timestamp = new Date().toISOString();
+    const logEntry = `${timestamp},${type},${price},${quantity}\n`;
+
+    fs.appendFile(logFilePath, logEntry, (err) => {
+        if (err) {
+            console.error("Erro ao registrar a transação:", err);
+        } else {
+            console.log("Transação registrada:", logEntry.trim());
+        }
+    });
+}
+
 async function start() {
     const { data } = await axios.get(API_URL + "/api/v3/klines?limit=21&interval=15m&symbol=" + SYMBOL);
     const candle = data[data.length - 1];
@@ -49,16 +66,19 @@ async function start() {
         isOpened = true;
         entryPrice = price; // Armazena o preço de entrada
         newOrder(SYMBOL, QUANTITY, "BUY");
+        logTransaction("BUY", entryPrice, QUANTITY); // Registrar compra
     } else if (isOpened) {
         const stopLossPrice = entryPrice - (volatility * 1.5); // Stop-loss ajustado pela volatilidade
         const takeProfitPrice = entryPrice + (volatility * 2); // Take-profit ajustado pela volatilidade
 
         if (price <= stopLossPrice) {
             newOrder(SYMBOL, QUANTITY, "SELL"); // Vende se atingir o stop-loss
+            logTransaction("SELL", price, QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Stop-Loss ativado. Vendido a: " + price);
         } else if (price >= takeProfitPrice) {
             newOrder(SYMBOL, QUANTITY, "SELL"); // Vende se atingir o take-profit
+            logTransaction("SELL", price, QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Take-Profit ativado. Vendido a: " + price);
         }

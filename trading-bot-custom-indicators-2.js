@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
 
 class CustomIndicators {
     static sma(data, period) {
@@ -152,6 +153,8 @@ class CryptoTradingBot {
         } else {
             this.state.position = null;
         }
+
+        this.logTransaction(type, price, size);
     }
 
     logTrade(trade) {
@@ -167,7 +170,7 @@ class CryptoTradingBot {
             position: this.state.position
         };
         
-        console.log(JSON.stringify(logEntry, null, 2));
+        console.log(`[PERFORMANCE LOG] ${JSON.stringify(logEntry, null, 2)}`);
         fs.appendFileSync('performance.log', JSON.stringify(logEntry) + '\n');
     }
 
@@ -180,6 +183,20 @@ class CryptoTradingBot {
         
         console.error(`[ERROR] ${context}:`, error);
         fs.appendFileSync('errors.log', JSON.stringify(errorLog) + '\n');
+    }
+
+    logTransaction(type, price, quantity) {
+        const logFilePath = path.join(__dirname, 'trading_log7.csv');
+        const timestamp = new Date().toISOString();
+        const logEntry = `${timestamp},${type},${price},${quantity}\n`;
+
+        fs.appendFile(logFilePath, logEntry, (err) => {
+            if (err) {
+                console.error("Erro ao registrar a transação:", err);
+            } else {
+                console.log(`[TRANSACTION LOG] ${type}: ${quantity} @ ${price} on ${timestamp}`);
+            }
+        });
     }
 }
 

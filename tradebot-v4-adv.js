@@ -6,13 +6,15 @@
 
 const axios = require("axios");
 const crypto = require("crypto");
+const fs = require('fs'); // Adicionando o módulo fs
+const path = require('path'); // Adicionando o módulo path
 
 // Configurações principais
 const API_URL = "https://testnet.binance.vision"; // URL da API da Testnet do Binance (uso para testes)
 const SYMBOL = "BTCUSDT"; // Par de trading
 const INITIAL_QUANTITY = 0.001; // Quantidade inicial para operações
-const API_KEY = "XXX"; // Sua chave da API do Binance
-const SECRET_KEY = "XXX"; // Sua chave secreta da API do Binance
+const API_KEY = process.env.API_KEY; // Sua chave da API do Binance
+const SECRET_KEY = process.env.SECRET_KEY; // Sua chave secreta da API do Binance
 const MAX_RISK_PERCENTAGE = 0.02; // Risco máximo permitido por operação (2% do capital total)
 const CAPITAL = 1000; // Capital total disponível para trading
 
@@ -91,6 +93,21 @@ async function fetchData(interval) {
     return data;
 }
 
+// Função para registrar transações
+function logTransaction(type, price, quantity) {
+    const logFilePath = path.join(__dirname, 'trading_log4.csv'); // Usando o mesmo arquivo de log
+    const timestamp = new Date().toISOString();
+    const logEntry = `${timestamp},${type},${price},${quantity}\n`;
+
+    fs.appendFile(logFilePath, logEntry, (err) => {
+        if (err) {
+            console.error("Erro ao registrar a transação:", err);
+        } else {
+            console.log("Transação registrada:", logEntry.trim());
+        }
+    });
+}
+
 // Função principal de execução periódica
 async function start() {
     // Obtém os dados de curto e longo prazo
@@ -133,6 +150,7 @@ async function start() {
         entryPrice = price; // Define o preço de entrada
         trailingStopLoss = price - stopLossDistance; // Inicializa o trailing stop-loss
         newOrder(SYMBOL, dynamicQuantity, "BUY"); // Realiza a compra
+        logTransaction("BUY", entryPrice, dynamicQuantity); // Registrar compra
     } 
     // Gerenciamento de posição aberta
     else if (isOpened) {
@@ -147,10 +165,12 @@ async function start() {
         // Verifica se atingiu o trailing stop ou take-profit
         if (price <= trailingStopLoss) {
             newOrder(SYMBOL, INITIAL_QUANTITY, "SELL");
+            logTransaction("SELL", price, INITIAL_QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Trailing Stop ativado. Vendido a: " + price);
         } else if (price >= takeProfitPrice) {
             newOrder(SYMBOL, INITIAL_QUANTITY, "SELL");
+            logTransaction("SELL", price, INITIAL_QUANTITY); // Registrar venda
             isOpened = false;
             console.log("Take-Profit ativado. Vendido a: " + price);
         }
