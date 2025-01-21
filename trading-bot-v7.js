@@ -1,6 +1,5 @@
 const axios = require('axios');
 const fs = require('fs');
-const crypto = require('crypto');
 const path = require('path');
 
 class CustomIndicators {
@@ -17,7 +16,7 @@ class CustomIndicators {
         let losses = 0;
 
         for (let i = 1; i < closes.length; i++) {
-            const change = closes[i] - closes[i-1];
+            const change = closes[i] - closes[i - 1];
             if (change >= 0) gains += change;
             else losses -= change;
         }
@@ -25,8 +24,7 @@ class CustomIndicators {
         const averageGain = gains / period;
         const averageLoss = losses / period;
 
-        const relativeStrength = averageLoss === 0 ? 100 : 100 - (100 / (1 + (averageGain / averageLoss)));
-        return relativeStrength;
+        return averageLoss === 0 ? 100 : 100 - (100 / (1 + (averageGain / averageLoss)));
     }
 
     static standardDeviation(data) {
@@ -61,7 +59,7 @@ class CryptoTradingBot {
                     limit: 100
                 }
             });
-            
+
             return response.data.map(candle => ({
                 close: parseFloat(candle[4]),
                 high: parseFloat(candle[2]),
@@ -75,7 +73,7 @@ class CryptoTradingBot {
 
     analyzeMarket(marketData) {
         const closes = marketData.map(candle => candle.close);
-        
+
         return {
             smaShort: CustomIndicators.sma(closes, 13),
             smaLong: CustomIndicators.sma(closes, 50),
@@ -87,14 +85,14 @@ class CryptoTradingBot {
     determineTradeSignal(indicators, currentPrice) {
         const bullishConditions = [
             indicators.smaShort > indicators.smaLong,
-            indicators.rsi < 40,
-            currentPrice < indicators.smaShort * 1.02
+            indicators.rsi < 40, // Relaxed RSI condition
+            currentPrice <= indicators.smaShort * 1.02 // Allow some tolerance above SMA short
         ];
 
         const bearishConditions = [
             indicators.smaShort < indicators.smaLong,
             indicators.rsi > 70,
-            currentPrice > indicators.smaShort 
+            currentPrice >= indicators.smaShort * 0.98 // Allow some tolerance below SMA short
         ];
 
         return {
@@ -115,7 +113,10 @@ class CryptoTradingBot {
                 const currentPrice = marketData[marketData.length - 1].close;
                 const indicators = this.analyzeMarket(marketData);
                 const signals = this.determineTradeSignal(indicators, currentPrice);
-                console.log('signals', signals);   
+
+                console.log('Current Price:', currentPrice);
+                console.log('Indicators:', indicators);
+                console.log('Trade Signals:', signals);
 
                 if (signals.buy && !this.state.position) {
                     const positionSize = this.calculatePositionSize(currentPrice);
@@ -130,7 +131,7 @@ class CryptoTradingBot {
             } catch (error) {
                 this.logError('Trading Loop', error);
             }
-        }, 60000); // A cada minuto
+        }, 60000); // Run every minute
     }
 
     executeTrade(type, price, size) {
@@ -170,7 +171,7 @@ class CryptoTradingBot {
             indicators,
             position: this.state.position
         };
-        
+
         console.log(`[PERFORMANCE LOG] ${JSON.stringify(logEntry, null, 2)}`);
         fs.appendFileSync('performance.log', JSON.stringify(logEntry) + '\n');
     }
@@ -181,19 +182,19 @@ class CryptoTradingBot {
             context,
             error: error.message
         };
-        
+
         console.error(`[ERROR] ${context}:`, error);
         fs.appendFileSync('errors.log', JSON.stringify(errorLog) + '\n');
     }
 
     logTransaction(type, price, quantity) {
-        const logFilePath = path.join(__dirname, 'trading_log7.csv');
+        const logFilePath = path.join(__dirname, 'trading_log_v2.csv');
         const timestamp = new Date().toISOString();
         const logEntry = `${timestamp},${type},${price},${quantity}\n`;
 
         fs.appendFile(logFilePath, logEntry, (err) => {
             if (err) {
-                console.error("Erro ao registrar a transação:", err);
+                console.error("Error logging transaction:", err);
             } else {
                 console.log(`[TRANSACTION LOG] ${type}: ${quantity} @ ${price} on ${timestamp}`);
             }
@@ -201,7 +202,7 @@ class CryptoTradingBot {
     }
 }
 
-// Inicialização do Bot
+// Initialize the bot with new settings
 const tradingBot = new CryptoTradingBot({
     symbol: 'BTCUSDT',
     capital: 5000,
@@ -212,5 +213,4 @@ tradingBot.start();
 
 module.exports = CryptoTradingBot;
 
-
-//  node trading-bot-custom-indicators-2.js
+// node trading-bot-v7.js
