@@ -113,3 +113,6 @@ async function newOrder(symbol, quantity, side) {
 setInterval(start, 3000); // Executa a função a cada 3 segundos
 
 start();
+
+
+// node tradebot-v2-adv.js
