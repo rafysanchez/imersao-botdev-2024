@@ -209,3 +209,6 @@ setInterval(start, 3000); // Intervalo de 3 segundos
 
 // Inicia a execução imediatamente
 start();
+
+
+// 
