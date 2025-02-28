@@ -1,0 +1,35 @@
+{
+    "symbol": "BTCUSDT",
+    "interval": "15m",
+    "capital": 10000,
+    "maxRiskPerTrade": 0.02,
+    "apiKey": "Wei29A5gT7vCafUIqiuO2Y7jk64SSiKkUQzSeAOL562mfAZDMe4OQAOgPuxYdKX4",
+    "apiSecret": "pHFvVpnS74fQqHjmXJrx20uLDLbUDJpdFKAYXBAIDtnSBloCRiVWDv1OIU8ecrwL",
+    "backtesting": false,
+    "logLevel": "info",
+    "riskManagement": {
+        "maxDrawdown": 0.1,
+        "dailyLossLimit": 0.05,
+        "trailingStopDistance": 0.02
+    },
+    "indicators": {
+        "sma": {
+            "shortPeriod": 13,
+            "longPeriod": 50
+        },
+        "rsi": {
+            "period": 14,
+            "overbought": 70,
+            "oversold": 30
+        },
+        "bollinger": {
+            "period": 20,
+            "stdDev": 2
+        },
+        "macd": {
+            "shortPeriod": 12,
+            "longPeriod": 26,
+            "signalPeriod": 9
+        }
+    }
+} 
